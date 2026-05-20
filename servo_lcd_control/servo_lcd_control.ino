@@ -33,6 +33,11 @@ void setup() {// This code runs one time at startup and never again
   // Allow for a 1 second delay for the servo to reach its starting position
   delay(1000);
 
+  // establish pin modes for dc motor control
+  pinMode(11, OUTPUT);
+  pinMode(12, OUTPUT);
+  pinMode(13, OUTPUT);
+
 }
 
 void loop() { //This code runs continuously after startup
@@ -43,6 +48,17 @@ void loop() { //This code runs continuously after startup
 
   //Correlate analogreadout from A0 to angle using map() function
   int inputangle = map(value,0,1023,0,180);
+
+  // Convert input angle to DC motor control
+  //0-469 gives reverse speed
+  int reversespeed = map(value,0,1023,0,469);
+
+  //470-530 gives stopped middle area
+  int deadband = map(value,0,1023,470,530);
+
+  //531-1023 gives forward speed
+  int forwardspeed = map(value,0,1023,531,1023);
+  
 
 // establish conditional for servo command every 100ms
 if (millis() - lastservoupdate >= 20 ) {
