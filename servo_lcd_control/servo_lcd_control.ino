@@ -16,6 +16,9 @@ unsigned long lastservoupdate = 0;
 // establish print timer
 unsigned long lastprintupdate = 0;
 
+//establish dc motor timer
+unsigned long lastmotorupdate = 0;
+
 void setup() {// This code runs one time at startup and never again
 
   // Initializes the usb serial data connection @ 9600 bits per second
@@ -46,18 +49,59 @@ void loop() { //This code runs continuously after startup
 // Assign the analog voltage readout from pin A0 to variable name 'value'
   int value = analogRead(A0);
 
+  //Overarching Conditional for DC motor command every 150ms
+  if (millis() - lastmotorupdate >=150 ) {
+
+    //Set reverse zone conditions
+    if (value < 489)  {
+
+    //Set Motor Output pins to opposite signals 
+    digitalWrite(12, LOW);
+    digitalWrite(13, HIGH);
+
+    //define speed value from raw analog output
+    int speed = map(value,489,0,0,255);
+    analogWrite(11, speed);
+
+    //update motor control timer
+    lastmotorupdate = millis();
+    }
+
+    //set deadband zone with no speed
+    else if (value>=489 && value<=534) {
+
+      // set motor output pins to low
+      digitalWrite(12, LOW);
+      digitalWrite(13, LOW);
+
+       // set speed value to zero
+      int speed = value-value;
+      analogWrite(11, speed);
+
+      //update motor control timer
+      lastmotorupdate = millis();
+    }
+
+    //set forward speed zone 
+    else {
+
+      //set motor output pins to opposite reverse
+      digitalWrite(12, HIGH);
+      digitalWrite(13, LOW);
+
+      //Set forward speed
+      int speed = map(value,534,1023,0,255);
+
+      //Apply PWM output
+      analogWrite(11, speed);
+
+      //update motor control timer
+    lastmotorupdate = millis();
+    }
+  }
+
   //Correlate analogreadout from A0 to angle using map() function
   int inputangle = map(value,0,1023,0,180);
-
-  // Convert input angle to DC motor control
-  //0-469 gives reverse speed
-  int reversespeed = map(value,0,1023,0,469);
-
-  //470-530 gives stopped middle area
-  int deadband = map(value,0,1023,470,530);
-
-  //531-1023 gives forward speed
-  int forwardspeed = map(value,0,1023,531,1023);
   
 
 // establish conditional for servo command every 100ms
